@@ -65,10 +65,10 @@ public class CalculatorTest2 {
     @ValueSource(strings = {"2 * 5 / 0"})
     void invokeExcpetionWhenDividedByZero(String input) {
 
-        Assertions.assertThatThrownBy(() -> {
-            Scanner scanner = generateUserInput(input);
-            String expr = scanner.nextLine();
+        Scanner scanner = generateUserInput(input);
+        String expr = scanner.nextLine();
 
+        Assertions.assertThatThrownBy(() -> {
             Calculator calculator = new Calculator().create(expr);
             calculator.start();
         }).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("0으로 나눌 수 없습니다.");
