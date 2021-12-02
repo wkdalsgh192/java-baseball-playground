@@ -4,9 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static baseball.BaseballTest.BallNumber.*;
@@ -37,7 +35,28 @@ public class BaseballTest {
         Balls balls = new Balls(Arrays.asList(1,2,3));
         Balls answers = new Balls(Arrays.asList(1,2,3));
 
-        Assertions.assertThat(answers.isCorrect(balls)).isTrue();
+        Assertions.assertThat(balls.isCorrect(answers)).isTrue();
+
+        answers = new Balls(Arrays.asList(1,4,2));
+        Assertions.assertThat(balls.isCorrect(answers)).isFalse();
+    }
+
+    @Test
+    @DisplayName("낫싱 테스트")
+    void nothing() {
+        Balls balls = new Balls(Arrays.asList(1,2,3));
+        Balls answers = new Balls(Arrays.asList(4,5,6));
+
+        Assertions.assertThat(balls.isNothing(answers)).isTrue();
+    }
+
+    @Test
+    @DisplayName("3볼 테스트")
+    void threeball() {
+        Balls balls = new Balls(Arrays.asList(1,2,3));
+        Balls answers = new Balls(Arrays.asList(2,3,1));
+
+        Assertions.assertThat(balls.isAllBall(answers)).isTrue();
     }
 
 
@@ -70,15 +89,40 @@ public class BaseballTest {
         public Balls(List<Integer> input) {
             if (input.size() != MAGIC_NUMBER) throw new IllegalArgumentException("3자리 수만 입력이 가능합니다.");
 
-            list = new ArrayList<>();
             Atomic<BallNumber> atomic = new Atomic();
-            input.stream().map((number) -> new Ball(atomic.getAndIncrement(), number)).collect(Collectors.toList());
+            atomic.set(FIRST);
+            list = input.stream().map((number) -> new Ball(atomic.getAndIncrement(), number)).collect(Collectors.toList());
         }
 
         public boolean isCorrect(Balls other) {
-            for (int i = 0; i < list.size(); i++) {
-            }
-            return true;
+            long strikeCnt = list.stream().filter(ball -> ball.compareTo(other.findBy(ball.pos)) == BallResult.STRIKE).count();
+            return strikeCnt == MAGIC_NUMBER;
+        }
+
+        public boolean isNothing(Balls other) {
+            long ballCnt = other.list.stream().filter(ball -> !values().contains(ball)).count();
+            return ballCnt == MAGIC_NUMBER;
+        }
+
+        private long count(Balls other, BallResult expected) {
+            return list.stream().filter(ball -> ball.compareTo(other.findBy(ball.pos)) == expected).count();
+        }
+
+        private List<Integer> values() {
+            return list.stream().map(ball -> ball.value).collect(Collectors.toList());
+        }
+
+        private Ball findBy(BallNumber number) {
+            return list.stream().filter(ball -> ball.pos == number).findAny().orElseThrow(IllegalArgumentException::new);
+        }
+
+        private Ball findBy(int value) {
+            return list.stream().filter(ball -> ball.value == value).findAny().get();
+        }
+
+        public boolean isAllBall(Balls other) {
+            long ballCnt = list.stream().filter(ball -> ball.compareTo(other.findBy(ball.value)) == BallResult.BALL).count();
+            return ballCnt == MAGIC_NUMBER;
         }
     }
 
@@ -90,32 +134,19 @@ public class BaseballTest {
         private int num;
 
         BallNumber(int num) { this.num = num; }
-
-        public BallNumber increment() {
-            if (this == FIRST) return SECOND;
-            if (this == SECOND) return THIRD;
-            return FIRST;
-        }
     }
 
-    private class Atomic<BallNumber> {
-        private BallNumber data;
+    private class Atomic<T> {
+        private T data;
 
-        public Atomic() {
-            data = (BallNumber) FIRST;
-        }
-
-        public Atomic(BallNumber number) {
-            data = number;
-        }
+        public void set(T value) { data = value;}
 
         public BallNumber getAndIncrement() {
-            BallNumber curr = data;
-            /*data = data.increment();*/
+            BallNumber curr = (BallNumber) data;
 
-            if (data == FIRST) data = (BallNumber) SECOND;
-            if (data == SECOND) data = (BallNumber) THIRD;
-            if (data == THIRD) data = (BallNumber) FIRST;
+            if (data == FIRST) data = (T) SECOND;
+            else if (data == SECOND) data = (T) THIRD;
+            else if (data == THIRD) data = (T) FIRST;
 
             return curr;
         }
