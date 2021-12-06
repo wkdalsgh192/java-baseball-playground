@@ -26,10 +26,33 @@ class Balls {
         return ballList.stream().map(ball -> ball.getValue()).collect(Collectors.toList());
     }
 
-    public ScoreBoard play(Balls answer) {
+    public ScoreBoard play(Balls target) {
         ScoreBoard scoreBoard = new ScoreBoard();
-        // TODO 채워야하는 부분
+        for (Ball ball : target.ballList) {
+            Ball answerBall = findBy(ball.getPos());
+            if (answerBall != null && answerBall.getValue() == ball.getValue()) {
+                scoreBoard.add(BallResult.STRIKE);
+            } else {
+                answerBall = findBy(ball.getValue());
+                if (answerBall != null) scoreBoard.add(BallResult.BALL);
+                else scoreBoard.add(BallResult.NOTHING);
+            }
+        }
         return scoreBoard;
+    }
+
+    private Ball findBy(int value) {
+        for (Ball ball : ballList) {
+            if (ball.getValue() == value) return ball;
+        }
+        return null;
+    }
+
+    private Ball findBy(BallNumber number) {
+        for (Ball ball : ballList) {
+            if (ball.getPos() == number) return ball;
+        }
+        return null;
     }
 
 }
