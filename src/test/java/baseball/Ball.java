@@ -11,11 +11,13 @@ class Ball {
         this.value = value;
     }
 
-    public BallNumber getPos() {
-        return pos;
+    public boolean equals(Ball other) {
+        if (pos == other.pos && value == other.value) return true;
+        return false;
     }
 
-    public int getValue() {
-        return value;
+    public boolean hasSameValueWith(Ball other) {
+        if (value == other.value) return true;
+        return false;
     }
 }

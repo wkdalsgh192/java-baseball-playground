@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static baseball.BallNumber.FIRST;
+import static baseball.BallResult.*;
 
 class Balls {
 
@@ -18,41 +19,19 @@ class Balls {
         ballList = input.stream().map((number) -> new Ball(atomic.getAndIncrement(), number)).collect(Collectors.toList());
     }
 
-    public boolean isNothing(Balls other) {
-        long ballCnt = other.ballList.stream().filter(ball -> !values().contains(ball)).count();
-        return ballCnt == MAGIC_NUMBER;
-    }
-    private List<Integer> values() {
-        return ballList.stream().map(ball -> ball.getValue()).collect(Collectors.toList());
-    }
-
     public ScoreBoard play(Balls target) {
         ScoreBoard scoreBoard = new ScoreBoard();
         for (Ball ball : target.ballList) {
-            Ball answerBall = findBy(ball.getPos());
-            if (answerBall != null && answerBall.getValue() == ball.getValue()) {
-                scoreBoard.add(BallResult.STRIKE);
-            } else {
-                answerBall = findBy(ball.getValue());
-                if (answerBall != null) scoreBoard.add(BallResult.BALL);
-                else scoreBoard.add(BallResult.NOTHING);
-            }
+            scoreBoard.add(getResultBy(ball));
         }
         return scoreBoard;
     }
 
-    private Ball findBy(int value) {
+    private BallResult getResultBy(Ball other) {
         for (Ball ball : ballList) {
-            if (ball.getValue() == value) return ball;
+            if (ball.equals(other)) return STRIKE;
+            if (ball.hasSameValueWith(other)) return BALL;
         }
-        return null;
+        return NOTHING;
     }
-
-    private Ball findBy(BallNumber number) {
-        for (Ball ball : ballList) {
-            if (ball.getPos() == number) return ball;
-        }
-        return null;
-    }
-
 }
